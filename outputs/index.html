@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trích xuất liên kết BeautyPlus</title>
+  <style>
+    :root { color-scheme: light; --bg:#f4f7fb; --card:#fff; --text:#172033; --muted:#697386; --line:#dce3ee; --primary:#5b5ce2; --primary-dark:#494ac7; --danger:#c9364f; --danger-bg:#fff1f3; --success:#16805b; --shadow:0 18px 50px rgba(28,39,66,.10); }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; background:radial-gradient(circle at 12% 0%,#e7e9ff 0,transparent 30%),var(--bg); color:var(--text); }
+    .wrap { width:min(1000px,calc(100% - 32px)); margin:0 auto; padding:56px 0; }
+    header { margin-bottom:24px; }
+    h1 { margin:0 0 10px; font-size:clamp(28px,5vw,42px); letter-spacing:-.04em; }
+    .intro { margin:0; max-width:720px; color:var(--muted); line-height:1.65; }
+    .card { background:rgba(255,255,255,.94); border:1px solid rgba(220,227,238,.9); border-radius:20px; box-shadow:var(--shadow); padding:24px; }
+    .section-head,.actions,.result-head,.link-row { display:flex; align-items:center; gap:12px; }
+    .section-head,.result-head { justify-content:space-between; margin-bottom:12px; }
+    label,.result-title { font-weight:750; }
+    .hint,.status { color:var(--muted); font-size:14px; }
+    textarea { width:100%; min-height:290px; resize:vertical; border:1px solid var(--line); border-radius:14px; padding:16px; color:var(--text); background:#fbfcff; font:14px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; outline:none; transition:.2s; }
+    textarea:focus { border-color:var(--primary); box-shadow:0 0 0 4px rgba(91,92,226,.12); background:#fff; }
+    .actions { justify-content:flex-end; margin-top:14px; flex-wrap:wrap; }
+    button,.open-link { min-height:40px; border-radius:10px; border:1px solid var(--line); padding:0 14px; background:#fff; color:var(--text); font:inherit; font-weight:700; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; transition:.16s; }
+    button:hover,.open-link:hover { transform:translateY(-1px); border-color:#b9c3d3; }
+    button.primary { color:#fff; border-color:var(--primary); background:var(--primary); }
+    button.primary:hover { background:var(--primary-dark); }
+    button:disabled { opacity:.48; cursor:not-allowed; transform:none; }
+    .error { display:none; margin-top:14px; padding:12px 14px; border-radius:10px; color:var(--danger); background:var(--danger-bg); font-size:14px; }
+    .error.show { display:block; }
+    .results { margin-top:22px; }
+    .count { color:var(--success); font-size:14px; font-weight:800; background:#eaf8f2; padding:6px 10px; border-radius:999px; white-space:nowrap; }
+    .links { display:grid; gap:10px; }
+    .link-row { padding:10px; border:1px solid var(--line); border-radius:13px; background:#fbfcff; }
+    .url { flex:1; min-width:0; border:0; background:transparent; color:#34405a; font:13px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace; outline:none; }
+    .empty { padding:30px 16px; text-align:center; color:var(--muted); border:1px dashed var(--line); border-radius:13px; }
+    .toast { position:fixed; left:50%; bottom:24px; translate:-50% 20px; opacity:0; pointer-events:none; padding:11px 16px; border-radius:10px; background:#172033; color:#fff; font-size:14px; transition:.22s; box-shadow:var(--shadow); }
+    .toast.show { opacity:1; translate:-50% 0; }
+    @media (max-width:640px) { .wrap{width:min(100% - 20px,1000px);padding:28px 0}.card{padding:16px;border-radius:16px}.link-row{align-items:stretch;flex-wrap:wrap}.url{flex-basis:100%;padding:5px}.link-row button,.open-link{flex:1}.section-head{align-items:flex-start;flex-direction:column;gap:4px} }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1>Trích xuất liên kết BeautyPlus</h1>
+      <p class="intro">Dán nội dung JSON vào bên dưới. Công cụ sẽ tự động lấy tất cả liên kết trong <code>data.predictions[].outputUrls</code>, loại bỏ liên kết trùng và giữ nguyên thứ tự.</p>
+    </header>
+    <section class="card">
+      <div class="section-head">
+        <label for="jsonInput">Nội dung JSON</label>
+        <span class="hint">Tự động xử lý khi nhập hoặc dán</span>
+      </div>
+      <textarea id="jsonInput" spellcheck="false" autocomplete="off" placeholder='Dán JSON BeautyPlus tại đây, ví dụ: {"data":{"predictions":[...]}}'></textarea>
+      <div id="error" class="error" role="alert"></div>
+      <div class="actions">
+        <button id="clearBtn" type="button">Xóa</button>
+        <button id="copyAllBtn" class="primary" type="button" disabled>Sao chép tất cả</button>
+      </div>
+      <div class="results" aria-live="polite">
+        <div class="result-head">
+          <div class="result-title">Liên kết đã trích xuất</div>
+          <span id="count" class="count">0 liên kết</span>
+        </div>
+        <div id="links" class="links"><div class="empty">Chưa có liên kết nào.</div></div>
+      </div>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status"></div>
+  <script>
+    (() => {
+      const input = document.querySelector('#jsonInput');
+      const linksBox = document.querySelector('#links');
+      const count = document.querySelector('#count');
+      const error = document.querySelector('#error');
+      const copyAllBtn = document.querySelector('#copyAllBtn');
+      const clearBtn = document.querySelector('#clearBtn');
+      const toast = document.querySelector('#toast');
+      let urls = [], timer, toastTimer;
+
+      const showToast = message => {
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+      };
+
+      const copyText = async text => {
+        try { await navigator.clipboard.writeText(text); }
+        catch (_) {
+          const helper = document.createElement('textarea');
+          helper.value = text; helper.style.position = 'fixed'; helper.style.opacity = '0';
+          document.body.appendChild(helper); helper.select(); document.execCommand('copy'); helper.remove();
+        }
+      };
+
+      const render = () => {
+        count.textContent = `${urls.length} liên kết`;
+        copyAllBtn.disabled = urls.length === 0;
+        linksBox.replaceChildren();
+        if (!urls.length) {
+          const empty = document.createElement('div'); empty.className = 'empty'; empty.textContent = 'Chưa có liên kết nào.'; linksBox.appendChild(empty); return;
+        }
+        urls.forEach((url, i) => {
+          const row = document.createElement('div'); row.className = 'link-row';
+          const field = document.createElement('input'); field.className = 'url'; field.readOnly = true; field.value = url; field.setAttribute('aria-label', `Liên kết ${i + 1}`);
+          const open = document.createElement('a'); open.className = 'open-link'; open.href = url; open.target = '_blank'; open.rel = 'noopener noreferrer'; open.textContent = 'Mở';
+          const copy = document.createElement('button'); copy.type = 'button'; copy.textContent = 'Sao chép';
+          copy.addEventListener('click', async () => { await copyText(url); showToast('Đã sao chép liên kết'); });
+          row.append(field, open, copy); linksBox.appendChild(row);
+        });
+      };
+
+      const parse = () => {
+        const raw = input.value.trim(); error.classList.remove('show'); error.textContent = '';
+        if (!raw) { urls = []; render(); return; }
+        try {
+          const json = JSON.parse(raw);
+          const predictions = json?.data?.predictions;
+          if (!Array.isArray(predictions)) throw new Error('Không tìm thấy mảng data.predictions trong JSON.');
+          const seen = new Set(); urls = [];
+          predictions.forEach(item => {
+            if (!Array.isArray(item?.outputUrls)) return;
+            item.outputUrls.forEach(url => { if (typeof url === 'string' && url.trim() && !seen.has(url)) { seen.add(url); urls.push(url); } });
+          });
+          render();
+        } catch (err) {
+          urls = []; render(); error.textContent = err instanceof SyntaxError ? 'JSON không hợp lệ. Vui lòng kiểm tra dấu ngoặc, dấu phẩy và dấu ngoặc kép.' : err.message; error.classList.add('show');
+        }
+      };
+
+      input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(parse, 250); });
+      clearBtn.addEventListener('click', () => { clearTimeout(timer); input.value = ''; parse(); input.focus(); });
+      copyAllBtn.addEventListener('click', async () => { await copyText(urls.join('\n')); showToast(`Đã sao chép ${urls.length} liên kết`); });
+    })();
+  </script>
+</body>
+</html>
+
