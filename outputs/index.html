@@ -5,22 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Trích xuất liên kết BeautyPlus</title>
   <style>
-    :root { color-scheme: light; --bg:#f4f7fb; --card:#fff; --text:#172033; --muted:#697386; --line:#dce3ee; --primary:#5b5ce2; --primary-dark:#494ac7; --danger:#c9364f; --danger-bg:#fff1f3; --success:#16805b; --shadow:0 18px 50px rgba(28,39,66,.10); }
+    :root { color-scheme:light; --bg:#f4f7fb; --card:#fff; --surface:#fbfcff; --text:#172033; --muted:#697386; --line:#dce3ee; --primary:#5b5ce2; --primary-dark:#494ac7; --danger:#c9364f; --danger-bg:#fff1f3; --success:#16805b; --success-bg:#eaf8f2; --glow:#e7e9ff; --shadow:0 18px 50px rgba(28,39,66,.10); }
+    :root[data-theme="dark"] { color-scheme:dark; --bg:#0f1420; --card:#171e2c; --surface:#111827; --text:#eef2ff; --muted:#9aa6ba; --line:#303b4f; --primary:#7778f3; --primary-dark:#6263dc; --danger:#ff8498; --danger-bg:#361c27; --success:#55d6a6; --success-bg:#17352d; --glow:#29295f; --shadow:0 18px 50px rgba(0,0,0,.32); }
     * { box-sizing:border-box; }
-    body { margin:0; min-height:100vh; font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; background:radial-gradient(circle at 12% 0%,#e7e9ff 0,transparent 30%),var(--bg); color:var(--text); }
+    body { margin:0; min-height:100vh; font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; background:radial-gradient(circle at 12% 0%,var(--glow) 0,transparent 30%),var(--bg); color:var(--text); transition:background-color .25s,color .25s; }
     .wrap { width:min(1000px,calc(100% - 32px)); margin:0 auto; padding:56px 0; }
     header { margin-bottom:24px; }
+    .header-row { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; }
     h1 { margin:0 0 10px; font-size:clamp(28px,5vw,42px); letter-spacing:-.04em; }
     .intro { margin:0; max-width:720px; color:var(--muted); line-height:1.65; }
-    .card { background:rgba(255,255,255,.94); border:1px solid rgba(220,227,238,.9); border-radius:20px; box-shadow:var(--shadow); padding:24px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:20px; box-shadow:var(--shadow); padding:24px; transition:background-color .25s,border-color .25s; }
     .section-head,.actions,.result-head,.link-row { display:flex; align-items:center; gap:12px; }
     .section-head,.result-head { justify-content:space-between; margin-bottom:12px; }
     label,.result-title { font-weight:750; }
     .hint,.status { color:var(--muted); font-size:14px; }
-    textarea { width:100%; min-height:290px; resize:vertical; border:1px solid var(--line); border-radius:14px; padding:16px; color:var(--text); background:#fbfcff; font:14px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; outline:none; transition:.2s; }
-    textarea:focus { border-color:var(--primary); box-shadow:0 0 0 4px rgba(91,92,226,.12); background:#fff; }
+    textarea { width:100%; min-height:290px; resize:vertical; border:1px solid var(--line); border-radius:14px; padding:16px; color:var(--text); background:var(--surface); font:14px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; outline:none; transition:.2s; }
+    textarea:focus { border-color:var(--primary); box-shadow:0 0 0 4px color-mix(in srgb,var(--primary) 18%,transparent); background:var(--card); }
     .actions { justify-content:flex-end; margin-top:14px; flex-wrap:wrap; }
-    button,.open-link { min-height:40px; border-radius:10px; border:1px solid var(--line); padding:0 14px; background:#fff; color:var(--text); font:inherit; font-weight:700; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; transition:.16s; }
+    button,.open-link { min-height:40px; border-radius:10px; border:1px solid var(--line); padding:0 14px; background:var(--card); color:var(--text); font:inherit; font-weight:700; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; transition:.16s; }
+    .theme-toggle { flex:0 0 auto; gap:8px; border-radius:999px; box-shadow:0 5px 18px rgba(0,0,0,.08); }
+    .theme-icon { font-size:18px; line-height:1; }
     button:hover,.open-link:hover { transform:translateY(-1px); border-color:#b9c3d3; }
     button.primary { color:#fff; border-color:var(--primary); background:var(--primary); }
     button.primary:hover { background:var(--primary-dark); }
@@ -28,21 +32,36 @@
     .error { display:none; margin-top:14px; padding:12px 14px; border-radius:10px; color:var(--danger); background:var(--danger-bg); font-size:14px; }
     .error.show { display:block; }
     .results { margin-top:22px; }
-    .count { color:var(--success); font-size:14px; font-weight:800; background:#eaf8f2; padding:6px 10px; border-radius:999px; white-space:nowrap; }
+    .count { color:var(--success); font-size:14px; font-weight:800; background:var(--success-bg); padding:6px 10px; border-radius:999px; white-space:nowrap; }
     .links { display:grid; gap:10px; }
-    .link-row { padding:10px; border:1px solid var(--line); border-radius:13px; background:#fbfcff; }
+    .link-row { padding:10px; border:1px solid var(--line); border-radius:13px; background:var(--surface); }
     .url { flex:1; min-width:0; border:0; background:transparent; color:#34405a; font:13px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace; outline:none; }
     .empty { padding:30px 16px; text-align:center; color:var(--muted); border:1px dashed var(--line); border-radius:13px; }
     .toast { position:fixed; left:50%; bottom:24px; translate:-50% 20px; opacity:0; pointer-events:none; padding:11px 16px; border-radius:10px; background:#172033; color:#fff; font-size:14px; transition:.22s; box-shadow:var(--shadow); }
     .toast.show { opacity:1; translate:-50% 0; }
-    @media (max-width:640px) { .wrap{width:min(100% - 20px,1000px);padding:28px 0}.card{padding:16px;border-radius:16px}.link-row{align-items:stretch;flex-wrap:wrap}.url{flex-basis:100%;padding:5px}.link-row button,.open-link{flex:1}.section-head{align-items:flex-start;flex-direction:column;gap:4px} }
+    @media (max-width:640px) { .wrap{width:min(100% - 20px,1000px);padding:28px 0}.card{padding:16px;border-radius:16px}.header-row{gap:12px}.theme-toggle{width:42px;padding:0}.theme-label{display:none}.link-row{align-items:stretch;flex-wrap:wrap}.url{flex-basis:100%;padding:5px}.link-row button,.open-link{flex:1}.section-head{align-items:flex-start;flex-direction:column;gap:4px} }
   </style>
+  <script>
+    (() => {
+      const saved = localStorage.getItem('beautyplus-theme');
+      const theme = saved || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
 </head>
 <body>
   <main class="wrap">
     <header>
-      <h1>Trích xuất liên kết BeautyPlus</h1>
-      <p class="intro">Dán nội dung JSON vào bên dưới. Công cụ sẽ tự động lấy tất cả liên kết trong <code>data.predictions[].outputUrls</code>, loại bỏ liên kết trùng và giữ nguyên thứ tự.</p>
+      <div class="header-row">
+        <div>
+          <h1>Trích xuất liên kết BeautyPlus</h1>
+          <p class="intro">Dán nội dung JSON vào bên dưới. Công cụ sẽ tự động lấy tất cả liên kết trong <code>data.predictions[].outputUrls</code>, loại bỏ liên kết trùng và giữ nguyên thứ tự.</p>
+        </div>
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Chuyển sang chế độ tối" aria-pressed="false">
+          <span class="theme-icon" aria-hidden="true">☾</span>
+          <span class="theme-label">Chế độ tối</span>
+        </button>
+      </div>
     </header>
     <section class="card">
       <div class="section-head">
@@ -73,6 +92,9 @@
       const error = document.querySelector('#error');
       const copyAllBtn = document.querySelector('#copyAllBtn');
       const clearBtn = document.querySelector('#clearBtn');
+      const themeToggle = document.querySelector('#themeToggle');
+      const themeIcon = themeToggle.querySelector('.theme-icon');
+      const themeLabel = themeToggle.querySelector('.theme-label');
       const toast = document.querySelector('#toast');
       let urls = [], timer, toastTimer;
 
@@ -90,6 +112,14 @@
           helper.value = text; helper.style.position = 'fixed'; helper.style.opacity = '0';
           document.body.appendChild(helper); helper.select(); document.execCommand('copy'); helper.remove();
         }
+      };
+
+      const updateThemeButton = () => {
+        const isDark = document.documentElement.dataset.theme === 'dark';
+        themeToggle.setAttribute('aria-pressed', String(isDark));
+        themeToggle.setAttribute('aria-label', isDark ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối');
+        themeIcon.textContent = isDark ? '☀' : '☾';
+        themeLabel.textContent = isDark ? 'Chế độ sáng' : 'Chế độ tối';
       };
 
       const render = () => {
@@ -128,8 +158,15 @@
       };
 
       input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(parse, 250); });
+      themeToggle.addEventListener('click', () => {
+        const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = next;
+        localStorage.setItem('beautyplus-theme', next);
+        updateThemeButton();
+      });
       clearBtn.addEventListener('click', () => { clearTimeout(timer); input.value = ''; parse(); input.focus(); });
       copyAllBtn.addEventListener('click', async () => { await copyText(urls.join('\n')); showToast(`Đã sao chép ${urls.length} liên kết`); });
+      updateThemeButton();
     })();
   </script>
 </body>
